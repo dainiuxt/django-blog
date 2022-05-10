@@ -1,9 +1,9 @@
-from django.shortcuts import render
-
-# Create your views here.
-
-from django.http import HttpResponse
+from django.shortcuts import render, reverse, redirect
+from blog.models import BlogPost, Comment
 
 def index(request):
-    return HttpResponse("Labas, pasauli!")
-    
+    all_posts = BlogPost.objects.all()
+    context = {
+      'all_posts': all_posts,
+    }
+    return render(request, 'index.html', context=context)
