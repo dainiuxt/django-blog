@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="resume-section" id="skills">
+  <div class="resume-section-content">
+    <h2 class="mb-5"><a href="{% url 'blogpost' blogpost.id %}">{{blogpost.post_title}}</a></h2>
+    <div class="subheading mb-3">{{ blogpost.post_text | safe }}</div>
+
+  </div>
+</section>
+{% endblock %}
