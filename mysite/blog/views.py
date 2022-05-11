@@ -100,7 +100,8 @@ class BlogPostUpdateView(UpdateView, LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user == blogpost.post_author
 
     def get_success_url(self):
-        return reverse('blogpost', kwargs={'pk': self.object.id})
+        blogpost = self.get_object()
+        return reverse('blogpost', kwargs={'pk': blogpost.id})
 
 class BlogPostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = BlogPost
@@ -120,12 +121,12 @@ class CommentCreateView(CreateView, LoginRequiredMixin, UserPassesTestMixin):
     template_name = 'blogpost.html'
 
     def form_valid(self, form):
-        form.instance.post_author = self.request.user
+        form.instance.comment_author = self.request.user
         return super().form_valid(form)
 
     def test_func(self):
-        blogpost = self.get_object()
-        return self.request.user == blogpost.post_author
+        comment = self.get_object()
+        return self.request.user == comment.comment_author
 
     def get_success_url(self):
         return reverse('comment', kwargs={'pk': self.object.id})

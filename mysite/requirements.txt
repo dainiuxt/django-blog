@@ -1,0 +1,10 @@
+asgiref==3.5.1
+backports.zoneinfo==0.2.1
+Django==4.0.4
+django-crispy-forms==1.14.0
+django-js-asset==2.0.0
+django-tinymce==3.4.0
+django-transaction-hooks==0.3
+django-transactional-cleanup==0.1.15
+jsmin==3.0.1
+sqlparse==0.4.2

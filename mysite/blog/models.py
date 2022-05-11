@@ -1,8 +1,5 @@
-from ast import mod
 from django.db import models
 from django.contrib.auth.models import User
-from django.urls import reverse
-from datetime import date
 from tinymce.models import HTMLField
 
 class BlogPost(models.Model):

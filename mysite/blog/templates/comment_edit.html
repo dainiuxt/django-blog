@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
+{% block title %}<title>Blog &bull; Edit Comment</title>{% endblock %}
 {% block content %}
 <section class="resume-section" id="skills">
   <div class="resume-section-content">
@@ -11,6 +12,7 @@
       </fieldset>
       <div class="form-group">
           <button class="btn btn-outline-info" type="submit">Submit</button>
+          <a class="btn btn-outline-secondary" href="{% url 'blogpost' comment.comment_post.id %}">I've changed my mind</a>
       </div>
     </form>
   </div>
