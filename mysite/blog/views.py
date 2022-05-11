@@ -1,15 +1,14 @@
-from django.shortcuts import render, reverse, redirect
+from django.shortcuts import render, reverse, redirect, get_object_or_404
 from blog.models import BlogPost, Comment, User
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.decorators.csrf import csrf_protect
 from django.contrib import messages
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import BlogPostForm
+from .forms import BlogPostForm, BlogPostUpdateForm, CommentForm, CommentUpdateForm
 from django.views.generic.edit import FormMixin
 
 from django.views.generic import (
-                                ListView,
                                 DetailView,
                                 DeleteView,
                                 CreateView,
@@ -20,7 +19,7 @@ from django.views.generic import (
 def index(request):
     post_list = list(reversed(BlogPost.objects.all()))
     page = request.GET.get('page', 1)
-    paginator = Paginator(post_list, 10)
+    paginator = Paginator(post_list, 5)
     try:
         posts = paginator.page(page)
     except PageNotAnInteger:
@@ -33,48 +32,132 @@ class BlogPostView(DetailView):
   model = BlogPost
   template_name = 'blogpost.html'
 
+  def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    pk = self.kwargs["pk"]
+
+    form = CommentForm()
+    post = get_object_or_404(BlogPost, pk=pk)
+    comments = post.comment_set.all()
+
+    context['post'] = post
+    context['comments'] = comments
+    context['form'] = form
+    return context
+
+  def post(self, request, *args, **kwargs):
+    form = CommentForm(request.POST)
+    self.object = self.get_object()
+    context = super().get_context_data(**kwargs)
+
+    post = BlogPost.objects.filter(id=self.kwargs['pk'])[0]
+    comments = post.comment_set.all()
+
+    context['post'] = post
+    context['comments'] = comments
+    context['form'] = form
+
+    if form.is_valid():
+        comment_author = self.request.user
+        comment_text = form.cleaned_data['comment_text']
+        comment = Comment.objects.create(comment_text=comment_text, comment_author=comment_author, comment_post=post)
+
+        form = CommentForm()
+        context['form'] = form
+        return self.render_to_response(context=context)
+
+    return self.render_to_response(context=context)
+
+
 class BlogPostCreateView(CreateView, LoginRequiredMixin, UserPassesTestMixin):
     model = BlogPost
     form_class = BlogPostForm
     template_name = 'blogpost_update.html'
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        form.instance.post_author = self.request.user
         return super().form_valid(form)
 
     def test_func(self):
         blogpost = self.get_object()
-        return self.request.user == blogpost.user
+        return self.request.user == blogpost.post_author
 
     def get_success_url(self):
         return reverse('blogpost', kwargs={'pk': self.object.id})
+
 
 class BlogPostUpdateView(UpdateView, LoginRequiredMixin, UserPassesTestMixin):
     model = BlogPost
-    form_class = BlogPostForm
+    form_class = BlogPostUpdateForm
     template_name = 'blogpost_update.html'
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        form.instance.post_author = self.request.user
         return super().form_valid(form)
 
     def test_func(self):
         blogpost = self.get_object()
-        return self.request.user == blogpost.user
+        return self.request.user == blogpost.post_author
 
     def get_success_url(self):
         return reverse('blogpost', kwargs={'pk': self.object.id})
 
-# class BlogPostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-#     model = BlogPost
-#     template_name = 'my_blogpost_delete.html'
+class BlogPostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = BlogPost
+    template_name = 'blogpost_delete.html'
 
-#     def get_success_url(self):
-#         return reverse('index')
+    def get_success_url(self):
+        return reverse('index')
 
-#     def test_func(self):
-#         blogpost = self.get_object()
-#         return self.request.user == blogpost.user
+    def test_func(self):
+        blogpost = self.get_object()
+        return self.request.user == blogpost.post_author
+
+
+class CommentCreateView(CreateView, LoginRequiredMixin, UserPassesTestMixin):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blogpost.html'
+
+    def form_valid(self, form):
+        form.instance.post_author = self.request.user
+        return super().form_valid(form)
+
+    def test_func(self):
+        blogpost = self.get_object()
+        return self.request.user == blogpost.post_author
+
+    def get_success_url(self):
+        return reverse('comment', kwargs={'pk': self.object.id})
+
+class CommentUpdateView(UpdateView, LoginRequiredMixin, UserPassesTestMixin):
+    model = Comment
+    form_class = CommentUpdateForm
+    template_name = 'comment_edit.html'
+
+    def form_valid(self, form):
+        form.instance.comment_author = self.request.user
+        return super().form_valid(form)
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.comment_author
+
+    def get_success_url(self):
+        comment = self.get_object()
+        return reverse('blogpost', kwargs={'pk': comment.comment_post.id})
+
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Comment
+    template_name = 'comment_delete.html'
+
+    def get_success_url(self):
+        return reverse('blogpost', kwargs={'pk': self.object.id})
+
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.comment_author
 
 
 @csrf_protect

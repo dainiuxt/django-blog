@@ -4,16 +4,22 @@
 <section class="resume-section" id="skills">
   <div class="resume-section-content">
     <h2 class="mb-5">Posts</h2>
-    <a href="new" class="btn btn-primary btn-lg" tabindex="-1" role="button" aria-disabled="true">New post</a>
     {% if posts %}
     <ul class="fa-ul mb-0">
       {% for post in posts %}
         <li class="mt-2">
-          <a href="{{ post.id }}">Post {{post.post_title }}</a> by: {{ post.post_author }}, at {{ post.pub_time}}
           {% if user.is_authenticated %}
-            <a href="{{ post.id }}/delete" class="btn btn-danger btn-sm" tabindex="-1" role="button" aria-disabled="true">Delete post</a>
+            {% if post.post_author == user %}
+              <a href="{{ post.id }}/edit" class="btn btn-success btn-sm" tabindex="-1" role="button" aria-disabled="true">Edit</a>
+              <a href="{{ post.id }}/delete" class="btn btn-danger btn-sm" tabindex="-1" role="button" aria-disabled="true">Delete</a>
+            {% endif %}
           {% endif %}
+          <a href="{{ post.id }}">{{post.post_title }}</a> by: {{ post.post_author }}, published at {{ post.pub_time}} <a href="{{ post.id }}#commentsection">{{ post.comment_count}} comment(s)</a>.
         </li>
+        <div class="mb-3 mt-4">
+          {{post.post_text|truncatewords_html:30|safe}} <a href="{{ post.id }}">Read more >></a>
+        </div>
+        <hr>
       {% endfor %}
     </ul>
     <div class="pagination">
@@ -40,7 +46,7 @@
       {% endif %}
     </div>      
     {% else %}
-      <p>No posts yet.</p>
+      <p>You are looking for love in Alderaan places.</p>
     {% endif %}
   </div>
 </section>

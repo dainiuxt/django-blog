@@ -18,6 +18,13 @@ class BlogPost(models.Model):
       verbose_name = 'Post'
       verbose_name_plural = 'Posts'
 
+  @property
+  def comment_count(self):
+      comments = Comment.objects.filter(comment_post_id=self.id)
+      count = 0
+      for row in comments:
+          count += 1
+      return count
 
 class Comment(models.Model):
   comment_post = models.ForeignKey(BlogPost, on_delete=models.CASCADE, null=True, blank=True)
@@ -31,4 +38,4 @@ class Comment(models.Model):
   class Meta:
       verbose_name = 'Comment'
       verbose_name_plural = 'Comments'
-
+      ordering = ('-pub_time',)

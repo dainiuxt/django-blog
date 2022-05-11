@@ -1,11 +1,51 @@
 {% extends "base.html" %}
-
+{% load crispy_forms_tags %}
 {% block content %}
 <section class="resume-section" id="skills">
   <div class="resume-section-content">
-    <h2 class="mb-5"><a href="{% url 'blogpost' blogpost.id %}">{{blogpost.post_title}}</a></h2>
-    <div class="subheading mb-3">{{ blogpost.post_text | safe }}</div>
+    <h2 class="mb-3"><a href="{% url 'blogpost' blogpost.id %}">{{blogpost.post_title}}</a></h2>
+    <div class="mb-3">By: {{ blogpost.post_author }}, published at {{ blogpost.pub_time}} {{ blogpost.comment_count}} comment(s).</div>
+    {% if user.is_authenticated %}
+      {% if blogpost.post_author == user %}
+        <a href="{{ blogpost.id }}/edit" class="btn btn-success btn-sm" tabindex="-1" role="button" aria-disabled="true">Edit post</a>
+        <a href="{{ blogpost.id }}/delete" class="btn btn-danger btn-sm" tabindex="-1" role="button" aria-disabled="true">Delete post</a>
+      {% endif %}
+    {% endif %}
+    <div class="mb-3 mt-4">{{ blogpost.post_text | safe }}</div>
+    {% if user.is_authenticated %}
+    <div class="resume-section-content">
+      <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Write comment</legend>
+            {{ form|crispy }}
+        </fieldset>
+        <div class="form-group">
+            <button class="btn btn-outline-info" type="submit">Submit</button>
+        </div>
+      </form>
+    </div>
+    {% endif %}
+    
+    <span {% if user.is_authenticated %} style="display: none;" {% endif %}>Login or register to comment.</span> 
+    
+    <div id="commentsection" class="mb-3 mt-4">
+      <ul class="fa-ul">
+        {% for row in blogpost.comment_set.all %}
+        <li>
+          {{ row.comment_author }} at {{ row.pub_time}} says: {{ row.comment_text }}.
 
+          {% if user.is_authenticated %}
+          {% if row.comment_author == user %}
+            <a href="{{ blogpost.id }}/comment/{{ row.id }}/edit" class="btn btn-outline-success btn-sm" tabindex="-1" role="button" aria-disabled="true">Edit comment</a>
+            <a href="{{ blogpost.id }}/comment/{{ row.id }}/delete" class="btn btn-outline-danger btn-sm" tabindex="-1" role="button" aria-disabled="true">Delete comment</a>
+          {% endif %}
+        {% endif %}
+          <hr>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
 </section>
 {% endblock %}
