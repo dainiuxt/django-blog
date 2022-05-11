@@ -93,6 +93,7 @@ class BlogPostUpdateView(UpdateView, LoginRequiredMixin, UserPassesTestMixin):
 
     def form_valid(self, form):
         form.instance.post_author = self.request.user
+        form.save()
         return super().form_valid(form)
 
     def test_func(self):
@@ -100,8 +101,8 @@ class BlogPostUpdateView(UpdateView, LoginRequiredMixin, UserPassesTestMixin):
         return self.request.user == blogpost.post_author
 
     def get_success_url(self):
-        blogpost = self.get_object()
-        return reverse('blogpost', kwargs={'pk': blogpost.id})
+        # blogpost = self.get_object()
+        return reverse('blogpost', kwargs={'pk': self.object.id})
 
 class BlogPostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = BlogPost
