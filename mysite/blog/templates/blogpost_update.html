@@ -1,18 +1,18 @@
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
-{% block title %}<title>Blog &bull; Update Post</title>{% endblock %}
+{% block title %}<title>Blog &bull; {% if blogpost.post_title %} Edit Post "{{blogpost.post_title}}" {% else %} Create post {% endif %}</title>{% endblock %}
 {% block content %}
 <section class="resume-section" id="skills">
   <div class="resume-section-content">
     <form method="POST" enctype="multipart/form-data">
       {% csrf_token %}
       <fieldset class="form-group">
-          <legend class="border-bottom mb-4">Edit Post</legend>
+          <legend class="border-bottom mb-4">{% if blogpost.post_title %} Edit Post "{{blogpost.post_title}}" {% else %} Create Post {% endif %}</legend>
           {{ form|crispy }}
       </fieldset>
       <div class="form-group">
           <button class="btn btn-outline-info" type="submit">Submit</button>
-
+          {% if blogpost.post_title %}<a class="btn btn-outline-secondary" href="{% url 'blogpost' blogpost.id %}">Cancel</a>{% endif %}
       </div>
     </form>
   </div>
